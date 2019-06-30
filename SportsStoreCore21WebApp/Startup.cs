@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Routing;
 using SportsStoreCore21WebApp.Models;
 using Microsoft.EntityFrameworkCore;
+using SportsStoreCore21WebApp.Models.Abstract;
+using SportsStoreCore21WebApp.Models.Concrete;
+using SportsStoreCore21WebApp.Models.Services;
 
 namespace SportsStoreCore21WebApp
 {
@@ -29,6 +32,14 @@ namespace SportsStoreCore21WebApp
 
     public void ConfigureServices(IServiceCollection services)
     {
+      services.Configure<StorageUtility>(cfg => {
+        if (string.IsNullOrEmpty(Configuration["StorageAccountInformation"]))
+        {
+          cfg.StorageAccountName = Configuration["StorageAccountInformation:StorageAccountName"];
+          cfg.StorageAccountAccessKey = Configuration["StorageAccountInformation:StorageAccountAccessKey"];
+        }
+      });
+
       services.AddMvc();
 
       services.AddDbContext<SportsStoreDbContext>(cfg => {
@@ -38,6 +49,10 @@ namespace SportsStoreCore21WebApp
           sqlOption.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
         });
       });
+
+      services.AddScoped<IProductRepository, EfProductRepository>();
+      services.AddScoped<IPhotoService, PhotoService>();
+
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)

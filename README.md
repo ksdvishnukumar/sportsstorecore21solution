@@ -1,6 +1,8 @@
 # Sports Store ASP Net Core 2.1 MVC Application
 
 - Nuget Packages for the Project
+  - For Azure Storage
+    1. Install-Package WindowsAzure.Storage (9.3.3)
 
 - Bower Packages for the Project
   1. "jquery": "3.3.1"
