@@ -32,14 +32,35 @@ namespace SportsStoreCore21WebApp.Models.Concrete
       throw new NotImplementedException();
     }
 
-    public Task CreateAsync(Product product)
+    public async Task CreateAsync(Product product)
     {
-      throw new NotImplementedException();
+      try
+      {
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+        LogInfo("ProductRepository.CreateAsync");
+      }
+      catch (Exception ex)
+      {
+        LogError($"ProductRepository.CreateAsync - {ex.Message}");
+        throw;
+      }
     }
 
-    public Task DeleteAsync(int productId)
+    public async Task DeleteAsync(int productId)
     {
-      throw new NotImplementedException();
+      try
+      {
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
+        LogInfo("ProductRepository.DeleteAsync");
+      }
+      catch (Exception ex)
+      {
+        LogError($"ProductRepository.DeleteAsync - {ex.Message}");
+        throw;
+      }
     }
 
     public async Task<Product> FindProductByIdAsync(int productId)
@@ -57,9 +78,19 @@ namespace SportsStoreCore21WebApp.Models.Concrete
       }
     }
 
-    public Task<List<Product>> FindProductsByCategoryAsync(string category)
+    public async Task<List<Product>> FindProductsByCategoryAsync(string category)
     {
-      throw new NotImplementedException();
+      try
+      {
+        var productsList = await _context.Products.Where(p=>p.Category == category).ToListAsync();
+        LogInfo($"ProductRepository.FindProductsByCategoryAsync - {category}");
+        return productsList;
+      }
+      catch (Exception ex)
+      {
+        LogError($"ProductRepository.FindProductsByCategoryAsync - Category={category} - {ex.Message}");
+        throw;
+      }
     }
 
     public async Task<List<Product>> GetAllProductsAsync()
@@ -77,9 +108,19 @@ namespace SportsStoreCore21WebApp.Models.Concrete
       }
     }
 
-    public Task UpdateAsync(Product product)
+    public async Task UpdateAsync(Product product)
     {
-      throw new NotImplementedException();
+      try
+      {
+        _context.Entry<Product>(product).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+        LogInfo("ProductRepository.UpdateAsync");
+      }
+      catch (Exception ex)
+      {
+        LogError($"ProductRepository.UpdateAsync - {ex.Message}");
+        throw;
+      }
     }
 
 
