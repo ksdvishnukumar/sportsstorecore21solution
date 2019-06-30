@@ -42,9 +42,19 @@ namespace SportsStoreCore21WebApp.Models.Concrete
       throw new NotImplementedException();
     }
 
-    public Task<Product> FindProductByIdAsync(int productId)
+    public async Task<Product> FindProductByIdAsync(int productId)
     {
-      throw new NotImplementedException();
+      try
+      {
+        var product = await _context.Products.FirstOrDefaultAsync(p=>p.ProductId == productId);
+        LogInfo("ProductRepository.FindProductByIdAsync");
+        return product;
+      }
+      catch (Exception ex)
+      {
+        LogError($"ProductRepository.FindProductByIdAsync - {ex.Message}");
+        throw;
+      }
     }
 
     public Task<List<Product>> FindProductsByCategoryAsync(string category)
@@ -57,11 +67,12 @@ namespace SportsStoreCore21WebApp.Models.Concrete
       try
       {
         var productsList = await _context.Products.ToListAsync();
-        _logger.LogInformation($"MN ---- ")
+        LogInfo("ProductRepository.GetAllProductsAsync");
+        return productsList;
       }
       catch (Exception ex)
       {
-
+        LogError($"ProductRepository.GetAllProductsAsync - {ex.Message}");
         throw;
       }
     }
@@ -100,7 +111,7 @@ namespace SportsStoreCore21WebApp.Models.Concrete
     }
     private void LogError(string message)
     {
-      _logger.LogInformation($"MN ---- Error in --- {message}");
+      _logger.LogError($"MN ---- Error in --- {message}");
     }
   }
 }
