@@ -49,7 +49,7 @@ namespace SportsStoreCore21WebApp
 
     private void ConfigureRoutes(IRouteBuilder routeBuilder)
     {
-      routeBuilder.MapRoute("Default", "{controller=About}/{action=Index}/{id?}");
+      routeBuilder.MapRoute("Default", "{controller=Product}/{action=Index}/{id?}");
       //routeBuilder.MapRoute("Default", "{controller}/{action}/{id?}");
     }
   }

@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ViewData["Title"] - SS</title>
-  <environment names="Development,Production">
+  <title>@ViewData["Title"] - SS</title>
+  <environment names="Development,Staging,Production">
     <link href="~/css/Site.css" rel="stylesheet" />
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
@@ -18,9 +18,9 @@
 
   <partial name="_FooterLayout" />
 
-  <environment names="Development,Production">
-    <script src="~/lib/jquery/dist/jquery.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+  <environment names="Development,Staging,Production">
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   </environment>
   @RenderSection("scripts", false)
 </body>
