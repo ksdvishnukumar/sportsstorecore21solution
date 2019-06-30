@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Routing;
+using SportsStoreCore21WebApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SportsStoreCore21WebApp
 {
@@ -28,6 +30,14 @@ namespace SportsStoreCore21WebApp
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddMvc();
+
+      services.AddDbContext<SportsStoreDbContext>(cfg => {
+        //Getting data form Appsetting this will change KeyVault
+
+        cfg.UseSqlServer(Configuration.GetConnectionString("SportStoreDbConnection"), sqlServerOptionsAction: sqlOption => {
+          sqlOption.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+        });
+      });
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -40,6 +50,18 @@ namespace SportsStoreCore21WebApp
       app.UseFileServer();
 
       app.UseMvc(ConfigureRoutes);
+
+      using (var scope = app.ApplicationServices.CreateScope())
+      {
+        var context = scope.ServiceProvider.GetRequiredService<SportsStoreDbContext>();
+
+        //This will ensure the database is created and the migrations are applied
+        context.Database.Migrate();
+
+        // If Database does not exist then the database and all its schema are created 
+        //context.Database.EnsureCreated();
+      }
+
 
       app.Run(async (context) =>
       {
