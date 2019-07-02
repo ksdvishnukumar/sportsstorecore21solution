@@ -6,8 +6,10 @@ using System.Text;
 
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SportsStoreCore21WebApp.Models.Abstract;
 using SportsStoreCore21WebApp.Models.Entities;
 
@@ -18,12 +20,14 @@ namespace SportsStoreCore21WebApp.Models.Concrete
     private SportsStoreDbContext _context;
     private readonly ILogger<EfProductRepository> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IDistributedCache _distributedCache;
 
-    public EfProductRepository(SportsStoreDbContext sportsStoreDbContext, ILogger<EfProductRepository> logger, IConfiguration configuration)
+    public EfProductRepository(SportsStoreDbContext sportsStoreDbContext, ILogger<EfProductRepository> logger, IConfiguration configuration, IDistributedCache distributedCache)
     {
       _context = sportsStoreDbContext;
       _logger = logger;
       _configuration = configuration;
+      _distributedCache = distributedCache;
     }
 
     #region IProductRepository Members
@@ -97,8 +101,35 @@ namespace SportsStoreCore21WebApp.Models.Concrete
     {
       try
       {
-        var productsList = await _context.Products.ToListAsync();
-        LogInfo("ProductRepository.GetAllProductsAsync");
+        #region Without Redis Cache
+        //var productsList = await _context.Products.ToListAsync();
+        //LogInfo("ProductRepository.GetAllProductsAsync");
+        //return productsList; 
+        #endregion
+
+        List<Product> productsList = null;
+        if (_configuration["EnableRedisCaching"] == "true")
+        {
+          var cachedProductsList = await _distributedCache.GetStringAsync("productsList");
+          if (!string.IsNullOrEmpty(cachedProductsList))
+          {
+            productsList = JsonConvert.DeserializeObject<List<Product>>(cachedProductsList);
+            LogInfo("ProductRepository.GetAllProductsAsync, ProductsList read from Cached");
+          }
+          else
+          {
+            productsList = await _context.Products.ToListAsync();
+            DistributedCacheEntryOptions entryOptions = new DistributedCacheEntryOptions();
+            entryOptions.SetAbsoluteExpiration(new TimeSpan(0, 1, 0));
+            await _distributedCache.SetStringAsync("productsList", JsonConvert.SerializeObject(productsList), entryOptions);
+            LogInfo("ProductRepository.GetAllProductsAsync, ProductsList Cached");
+          }
+        }
+        else
+        {
+          productsList = await _context.Products.ToListAsync();
+          LogInfo("ProductRepository.GetAllProductsAsync");
+        }
         return productsList;
       }
       catch (Exception ex)
@@ -122,8 +153,6 @@ namespace SportsStoreCore21WebApp.Models.Concrete
         throw;
       }
     }
-
-
     #endregion
 
     #region IDispose Member

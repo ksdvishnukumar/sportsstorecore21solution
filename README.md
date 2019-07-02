@@ -3,6 +3,14 @@
 - Nuget Packages for the Project
   - For Azure Storage
     1. Install-Package WindowsAzure.Storage (9.3.3)
+  - For KeyVault
+    1. Install-Package Microsoft.Azure.Services.AppAuthentication -Version 1.2.0 (or latest)
+    2. Install-Package Microsoft.Azure.KeyVault -Version 3.0.3 (or latest)
+    3. Install-Package Microsoft.Extensions.Configuration.AzureKeyVault -Version 2.1.1 (For ASP.Net Core 2.1)
+  - Application Insights
+    - Install-Package Microsoft.ApplicationInsights.AspNetCore -Version 2.7.1
+  - For Redis Cache
+    -  Install-Package Microsoft.Extensions.Caching.Redis -Version 2.1.1 (For ASP.Net Core 2.1)
 
 - Bower Packages for the Project
   1. "jquery": "3.3.1"
@@ -22,3 +30,5 @@
 - 01Start
 - 02MVC
 - 03EFCore
+- 04AzureLocal
+- 05AzureCloud

@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using SportsStoreCore21WebApp.Models.Abstract;
 using SportsStoreCore21WebApp.Models.Concrete;
 using SportsStoreCore21WebApp.Models.Services;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace SportsStoreCore21WebApp
 {
@@ -42,21 +43,54 @@ namespace SportsStoreCore21WebApp
 
       services.AddMvc();
 
+      //cfg.UseSqlServer(Configuration.GetConnectionString("SportsStoreDbConnection"),
       services.AddDbContext<SportsStoreDbContext>(cfg => {
-        //Getting data form Appsetting this will change KeyVault
-
-        cfg.UseSqlServer(Configuration.GetConnectionString("SportStoreDbConnection"), sqlServerOptionsAction: sqlOption => {
+        //Getting data form Appsetting this will change KeyVault ConnectionStrings--SportsStoreDbConnection
+        cfg.UseSqlServer(Configuration["ConnectionStrings:SportsStoreDbConnection"], sqlServerOptionsAction: sqlOption => {
           sqlOption.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
         });
       });
 
+      if (Configuration["EnableRedisCaching"] == "true")
+      {
+        services.AddDistributedRedisCache(cfg => {
+          cfg.Configuration = Configuration["ConnectionStrings:RedisConnection"];
+          cfg.InstanceName = "master";
+        });
+      }
+
       services.AddScoped<IProductRepository, EfProductRepository>();
       services.AddScoped<IPhotoService, PhotoService>();
+
+      services.AddApplicationInsightsTelemetry(cfg => {
+        cfg.InstrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+      });
+      services.AddLogging(cfg =>
+      {
+        cfg.AddApplicationInsights(Configuration["ApplicationInsights:InstrumentationKey"]);
+        // Optional: Apply filters to configure LogLevel Information or above is sent to
+        // ApplicationInsights for all categories.
+        cfg.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Information);
+
+        // Additional filtering For category starting in "Microsoft",
+        // only Warning or above will be sent to Application Insights.
+        //cfg.AddFilter<ApplicationInsightsLoggerProvider>("Microsoft", LogLevel.Warning);
+      });
 
     }
 
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
+      var appInsightsFlag = app.ApplicationServices.GetService<Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration>();
+      if (Configuration["EnableAppInsightsDisableTelemetry"] == "false")
+      {
+        appInsightsFlag.DisableTelemetry = false;
+      }
+      else
+      {
+        appInsightsFlag.DisableTelemetry = true;
+      }
+
       if (env.IsDevelopment())
       {
         app.UseDeveloperExceptionPage();
